@@ -1,0 +1,13 @@
+%Reveresing back from text to binary
+clc;
+clear all;
+close all;
+fid= fopen('v1c.txt');
+tline = fgetl(fid);
+while ischar(tline)
+    disp(tline)
+    tline = fgetl(fid);
+end
+
+fclose(fid);
+% Sai this works just try decoding and play the song from this
