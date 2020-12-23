@@ -1,0 +1,71 @@
+clc;
+close all;
+clear all;
+[y,fs] = audioread('we.wav');
+x=y;
+r = x(:, 2);
+l = x(:, 1);
+d1=l*2^15;
+c1=typecast(int16(d1), 'uint16');
+[m n]=size(c1);
+
+for i=1:m
+        if c1(i,1)>=0
+            z1(i,1)=c1(i,1);
+        else
+            z1(i,1)=c1(i,1)+(2^15);
+    end
+end
+v1=dec2bin(z1);
+d2=r*2^15;
+c2=typecast(int16(d2), 'uint16');
+[m n]=size(l);
+
+for i=1:m
+        if c2(i,1)>=0
+            z2(i,1)=c2(i,1);
+        else
+            z2(i,1)=c2(i,1)+(2^15);
+    end
+end
+v2=dec2bin(z1);
+filnam1 = 'v1.txt';
+filnam2 = 'v2.txt';
+
+    fid = fopen(filnam1,'w');
+    for i=1:size(v1,1)    
+        fprintf(fid,'%s\n', v1(i,:));
+    end;          
+    fclose(fid);
+    
+        fid = fopen(filnam2,'w');
+    for i=1:size(v1,1)    
+        fprintf(fid,'%s\n', v2(i,:));
+    end;          
+    fclose(fid);
+    b1=bin2dec(v1);
+for i=1:m
+        if b1(i,1)<=32767;
+            a(i,1)=b1(i,1);
+        else
+            a1(i,1)=b1(i,1)-(2^16);
+            a1(i,1)=a1(i,1);
+    end
+end
+s1=a1/(2^15);
+b2=bin2dec(v2);
+for i=1:m
+        if b2(i,1)<=32767;
+            a2(i,1)=b2(i,1);
+        else
+            a2(i,1)=b2(i,1)-(2^16);
+            a2(i,1)=a2(i,1);
+    end
+end
+s2=a2/(2^15);
+stereo=[s2 s1];
+if(a2==d1);
+    disp true;
+else
+    disp false;
+end
