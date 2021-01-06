@@ -22,3 +22,5 @@ always @(posedge clk) begin
   end
 end
 endmodule
+%Make sure u have the v12.txt file in this directory:
+C:\Users\kesavbm26\Desktop\VIVADO\project_16\project_16.sim\sim_1\behav\xsim
