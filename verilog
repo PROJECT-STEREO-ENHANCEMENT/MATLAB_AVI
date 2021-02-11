@@ -1,0 +1,137 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 21.12.2020 12:33:25
+// Design Name: 
+// Module Name: abc
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module ReadBinary();
+reg signed [15:0] A_1=0;
+reg signed [15:0] A_2=0; //register declaration for storing each line of file.
+
+reg signed [15:0] l_r=0;
+reg signed [15:0] r_l=0;
+
+reg signed [15:0] attn_l_r=0;
+reg signed [15:0] attn_r_l=0;
+
+reg signed [15:0] filt_l_r=0;
+reg signed [15:0] filt_r_l=0;
+
+
+reg signed [15:0] final_l=0;
+reg signed [15:0] final_r=0;
+
+reg signed [15:0] B_1=0;
+reg signed [15:0] B_2=0;
+
+reg signed [15:0] C_1=0;
+reg signed [15:0] C_2=0;
+
+reg signed [15:0] D_1=0;
+reg signed [15:0] D_2=0;
+
+    reg CLK;
+integer               data_file_1=0    ; // file handler
+integer               scan_file_1=0    ; // file handler
+reg signed [15:0] captured_data_1=0;
+
+integer               data_file_2=0    ; // file handler
+integer               scan_file_2=0    ; // file handler
+reg signed [15:0] captured_data_2=0;
+
+integer               output_l=0        ;
+
+
+
+
+`define NULL 0    
+
+initial begin
+  data_file_1 = $fopen("v1.txt","r");
+  if (data_file_1 == `NULL) begin
+    $display("data_file handle was NULL");
+    $finish;
+  end
+  data_file_2 = $fopen("v2.txt","r");
+  if (data_file_2 == `NULL) begin
+    $display("data_file handle was NULL");
+    $finish;
+  end
+  output_l=$fopen("output_l.txt","w");
+end
+
+always @(posedge CLK) begin
+  scan_file_1 = $fscanf(data_file_1, "%b\n",captured_data_1 ); 
+  if (!$feof(data_file_1)) 
+  begin
+     A_1<= captured_data_1;//use captured_data as you would any other wire or reg value;
+  end
+  else
+    A_1<=0;
+  scan_file_2 = $fscanf(data_file_2, "%b\n",captured_data_2 ); 
+  if (!$feof(data_file_2)) 
+  begin
+     A_2<= captured_data_2;//use captured_data as you would any other wire or reg value;
+  end
+  else
+    A_2<=0;
+end
+always@(posedge CLK)//subtraction
+begin
+    r_l<=A_2-A_1;
+    l_r<=A_1-A_2;
+end
+
+always@(posedge CLK)//attenuation
+begin
+    attn_r_l<=r_l>>>4;
+    attn_l_r<=l_r>>>4;
+    
+    B_1<=A_1;
+    B_2<=A_2;
+    
+end
+   
+always@(posedge CLK)//filter
+begin
+    filt_r_l<=attn_r_l;
+    filt_l_r<=attn_l_r;
+    
+     C_1<=B_1;
+     C_2<=B_2;
+    
+end  
+always@(posedge CLK)
+begin
+     D_1<=C_1;
+     D_2<=C_2;
+    
+end  
+
+always@(posedge CLK)//final addirion
+begin
+
+    final_l<=filt_r_l+D_1;
+    final_r<=filt_l_r+D_2;
+
+    $fwrite(output_l, "%b\n",final_l);
+
+end  
+
+endmodule
