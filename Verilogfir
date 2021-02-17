@@ -1,0 +1,432 @@
+//AVI CHECK
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 11.02.2021 13:59:04
+// Design Name: 
+// Module Name: fir
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module fir(
+                clk,
+                clk_enable,
+                reset,
+                filter_out               );
+
+  input   clk; 
+  input   clk_enable; 
+  input   reset; 
+   reg   [63:0] filter_in; //double
+   output  [15:0] filter_out; //double
+
+////////////////////////////////////////////////////////////////
+//Module Architecture: filter321
+////////////////////////////////////////////////////////////////
+  // Local Functions
+  // Type Definitions
+  // Constants
+  parameter coeff1 = -9.1909820846825603E-04; //double
+  parameter coeff2 = -2.7176960265955000E-03; //double
+  parameter coeff3 = -2.4869527598323101E-03; //double
+  parameter coeff4 = 3.6614383835070902E-03; //double
+  parameter coeff5 = 1.3650925230662400E-02; //double
+  parameter coeff6 = 1.7351165901093299E-02; //double
+  parameter coeff7 = 7.6653061904216804E-03; //double
+  parameter coeff8 = -6.5547188696423999E-03; //double
+  parameter coeff9 = -7.6967840370653602E-03; //double
+  parameter coeff10 = 6.1054594213943601E-03; //double
+  parameter coeff11 = 1.3873915748635401E-02; //double
+  parameter coeff12 = 3.5086172829091000E-04; //double
+  parameter coeff13 = -1.6908925436690501E-02; //double
+  parameter coeff14 = -8.9056427491586796E-03; //double
+  parameter coeff15 = 1.7441129500854899E-02; //double
+  parameter coeff16 = 2.0745044527609901E-02; //double
+  parameter coeff17 = -1.2296494251940300E-02; //double
+  parameter coeff18 = -3.4240865909578401E-02; //double
+  parameter coeff19 = -1.0345296055723999E-03; //double
+  parameter coeff20 = 4.7790305520801497E-02; //double
+  parameter coeff21 = 2.7363037914847999E-02; //double
+  parameter coeff22 = -5.9379518831046599E-02; //double
+  parameter coeff23 = -8.2307025929229102E-02; //double
+  parameter coeff24 = 6.7186909432870506E-02; //double
+  parameter coeff25 = 3.1001517709025100E-01; //double
+  parameter coeff26 = 4.3004788034351699E-01; //double
+  parameter coeff27 = 3.1001517709025100E-01; //double
+  parameter coeff28 = 6.7186909432870506E-02; //double
+  parameter coeff29 = -8.2307025929229102E-02; //double
+  parameter coeff30 = -5.9379518831046599E-02; //double
+  parameter coeff31 = 2.7363037914847999E-02; //double
+  parameter coeff32 = 4.7790305520801497E-02; //double
+  parameter coeff33 = -1.0345296055723999E-03; //double
+  parameter coeff34 = -3.4240865909578401E-02; //double
+  parameter coeff35 = -1.2296494251940300E-02; //double
+  parameter coeff36 = 2.0745044527609901E-02; //double
+  parameter coeff37 = 1.7441129500854899E-02; //double
+  parameter coeff38 = -8.9056427491586796E-03; //double
+  parameter coeff39 = -1.6908925436690501E-02; //double
+  parameter coeff40 = 3.5086172829091000E-04; //double
+  parameter coeff41 = 1.3873915748635401E-02; //double
+  parameter coeff42 = 6.1054594213943601E-03; //double
+  parameter coeff43 = -7.6967840370653602E-03; //double
+  parameter coeff44 = -6.5547188696423999E-03; //double
+  parameter coeff45 = 7.6653061904216804E-03; //double
+  parameter coeff46 = 1.7351165901093299E-02; //double
+  parameter coeff47 = 1.3650925230662400E-02; //double
+  parameter coeff48 = 3.6614383835070902E-03; //double
+  parameter coeff49 = -2.4869527598323101E-03; //double
+  parameter coeff50 = -2.7176960265955000E-03; //double
+  parameter coeff51 = -9.1909820846825603E-04; //double
+
+  // Signals
+  reg  [5:0] cur_count; // ufix6
+  wire phase_50; // boolean
+  wire phase_0; // boolean
+  real delay_pipeline [0:50] ; // double
+  real inputmux_1; // double
+  real acc_final; // double
+  real acc_out_1; // double
+  real product_1; // double
+  real product_1_mux; // double
+  real prod_typeconvert_1; // double
+  real acc_sum_1; // double
+  real acc_in_1; // double
+  real output_typeconvert; // double
+  real output_register; // double
+reg [15:0] A=0; //register declaration for storing each line of file.
+integer               data_file,write_file    ; // file handler
+integer               scan_file    ; // file handler    
+reg [15:0] captured_data;
+`define NULL 0    
+
+initial begin
+  data_file = $fopen("prt.txt", "r");
+   write_file = $fopen("prtout.txt","w");
+  if (data_file == `NULL) begin
+    $display("data_file handle was NULL");
+    $finish;
+  end
+  end
+  // Block Statements
+  always @ (posedge clk or posedge reset)
+    begin: Counter_process
+      if (reset == 1'b1) begin
+        cur_count <= 6'b110010;
+      end
+      else begin
+        if (clk_enable == 1'b1) begin
+          if (cur_count == 6'b110010) begin
+            cur_count <= 6'b000000;
+          end
+          else begin
+          begin
+  scan_file = $fscanf(data_file, "%b\n",captured_data ); 
+  if (!$feof(data_file)) 
+  begin
+     filter_in<= captured_data;//use captured_data as you would any other wire or reg value;
+  end
+end
+            cur_count <= cur_count + 1;
+          end
+        end
+      end
+    end // Counter_process
+
+  assign  phase_50 = (cur_count == 6'b110010 && clk_enable == 1'b1)? 1 : 0;
+
+  assign  phase_0 = (cur_count == 6'b000000 && clk_enable == 1'b1)? 1 : 0;
+
+  always @( posedge clk or posedge reset)
+    begin: Delay_Pipeline_process
+      if (reset == 1'b1) begin
+        delay_pipeline[0] <= 0.0000000000000000E+00;
+        delay_pipeline[1] <= 0.0000000000000000E+00;
+        delay_pipeline[2] <= 0.0000000000000000E+00;
+        delay_pipeline[3] <= 0.0000000000000000E+00;
+        delay_pipeline[4] <= 0.0000000000000000E+00;
+        delay_pipeline[5] <= 0.0000000000000000E+00;
+        delay_pipeline[6] <= 0.0000000000000000E+00;
+        delay_pipeline[7] <= 0.0000000000000000E+00;
+        delay_pipeline[8] <= 0.0000000000000000E+00;
+        delay_pipeline[9] <= 0.0000000000000000E+00;
+        delay_pipeline[10] <= 0.0000000000000000E+00;
+        delay_pipeline[11] <= 0.0000000000000000E+00;
+        delay_pipeline[12] <= 0.0000000000000000E+00;
+        delay_pipeline[13] <= 0.0000000000000000E+00;
+        delay_pipeline[14] <= 0.0000000000000000E+00;
+        delay_pipeline[15] <= 0.0000000000000000E+00;
+        delay_pipeline[16] <= 0.0000000000000000E+00;
+        delay_pipeline[17] <= 0.0000000000000000E+00;
+        delay_pipeline[18] <= 0.0000000000000000E+00;
+        delay_pipeline[19] <= 0.0000000000000000E+00;
+        delay_pipeline[20] <= 0.0000000000000000E+00;
+        delay_pipeline[21] <= 0.0000000000000000E+00;
+        delay_pipeline[22] <= 0.0000000000000000E+00;
+        delay_pipeline[23] <= 0.0000000000000000E+00;
+        delay_pipeline[24] <= 0.0000000000000000E+00;
+        delay_pipeline[25] <= 0.0000000000000000E+00;
+        delay_pipeline[26] <= 0.0000000000000000E+00;
+        delay_pipeline[27] <= 0.0000000000000000E+00;
+        delay_pipeline[28] <= 0.0000000000000000E+00;
+        delay_pipeline[29] <= 0.0000000000000000E+00;
+        delay_pipeline[30] <= 0.0000000000000000E+00;
+        delay_pipeline[31] <= 0.0000000000000000E+00;
+        delay_pipeline[32] <= 0.0000000000000000E+00;
+        delay_pipeline[33] <= 0.0000000000000000E+00;
+        delay_pipeline[34] <= 0.0000000000000000E+00;
+        delay_pipeline[35] <= 0.0000000000000000E+00;
+        delay_pipeline[36] <= 0.0000000000000000E+00;
+        delay_pipeline[37] <= 0.0000000000000000E+00;
+        delay_pipeline[38] <= 0.0000000000000000E+00;
+        delay_pipeline[39] <= 0.0000000000000000E+00;
+        delay_pipeline[40] <= 0.0000000000000000E+00;
+        delay_pipeline[41] <= 0.0000000000000000E+00;
+        delay_pipeline[42] <= 0.0000000000000000E+00;
+        delay_pipeline[43] <= 0.0000000000000000E+00;
+        delay_pipeline[44] <= 0.0000000000000000E+00;
+        delay_pipeline[45] <= 0.0000000000000000E+00;
+        delay_pipeline[46] <= 0.0000000000000000E+00;
+        delay_pipeline[47] <= 0.0000000000000000E+00;
+        delay_pipeline[48] <= 0.0000000000000000E+00;
+        delay_pipeline[49] <= 0.0000000000000000E+00;
+        delay_pipeline[50] <= 0.0000000000000000E+00;
+      end
+      else begin
+        if (phase_50 == 1'b1) begin
+          delay_pipeline[0] <= $bitstoreal(filter_in);
+          delay_pipeline[1] <= delay_pipeline[0];
+          delay_pipeline[2] <= delay_pipeline[1];
+          delay_pipeline[3] <= delay_pipeline[2];
+          delay_pipeline[4] <= delay_pipeline[3];
+          delay_pipeline[5] <= delay_pipeline[4];
+          delay_pipeline[6] <= delay_pipeline[5];
+          delay_pipeline[7] <= delay_pipeline[6];
+          delay_pipeline[8] <= delay_pipeline[7];
+          delay_pipeline[9] <= delay_pipeline[8];
+          delay_pipeline[10] <= delay_pipeline[9];
+          delay_pipeline[11] <= delay_pipeline[10];
+          delay_pipeline[12] <= delay_pipeline[11];
+          delay_pipeline[13] <= delay_pipeline[12];
+          delay_pipeline[14] <= delay_pipeline[13];
+          delay_pipeline[15] <= delay_pipeline[14];
+          delay_pipeline[16] <= delay_pipeline[15];
+          delay_pipeline[17] <= delay_pipeline[16];
+          delay_pipeline[18] <= delay_pipeline[17];
+          delay_pipeline[19] <= delay_pipeline[18];
+          delay_pipeline[20] <= delay_pipeline[19];
+          delay_pipeline[21] <= delay_pipeline[20];
+          delay_pipeline[22] <= delay_pipeline[21];
+          delay_pipeline[23] <= delay_pipeline[22];
+          delay_pipeline[24] <= delay_pipeline[23];
+          delay_pipeline[25] <= delay_pipeline[24];
+          delay_pipeline[26] <= delay_pipeline[25];
+          delay_pipeline[27] <= delay_pipeline[26];
+          delay_pipeline[28] <= delay_pipeline[27];
+          delay_pipeline[29] <= delay_pipeline[28];
+          delay_pipeline[30] <= delay_pipeline[29];
+          delay_pipeline[31] <= delay_pipeline[30];
+          delay_pipeline[32] <= delay_pipeline[31];
+          delay_pipeline[33] <= delay_pipeline[32];
+          delay_pipeline[34] <= delay_pipeline[33];
+          delay_pipeline[35] <= delay_pipeline[34];
+          delay_pipeline[36] <= delay_pipeline[35];
+          delay_pipeline[37] <= delay_pipeline[36];
+          delay_pipeline[38] <= delay_pipeline[37];
+          delay_pipeline[39] <= delay_pipeline[38];
+          delay_pipeline[40] <= delay_pipeline[39];
+          delay_pipeline[41] <= delay_pipeline[40];
+          delay_pipeline[42] <= delay_pipeline[41];
+          delay_pipeline[43] <= delay_pipeline[42];
+          delay_pipeline[44] <= delay_pipeline[43];
+          delay_pipeline[45] <= delay_pipeline[44];
+          delay_pipeline[46] <= delay_pipeline[45];
+          delay_pipeline[47] <= delay_pipeline[46];
+          delay_pipeline[48] <= delay_pipeline[47];
+          delay_pipeline[49] <= delay_pipeline[48];
+          delay_pipeline[50] <= delay_pipeline[49];
+        end
+      end
+    end // Delay_Pipeline_process
+
+
+  always @* inputmux_1 <= (cur_count == 6'b000000) ? delay_pipeline[0] :
+                     (cur_count == 6'b000001) ? delay_pipeline[1] :
+                     (cur_count == 6'b000010) ? delay_pipeline[2] :
+                     (cur_count == 6'b000011) ? delay_pipeline[3] :
+                     (cur_count == 6'b000100) ? delay_pipeline[4] :
+                     (cur_count == 6'b000101) ? delay_pipeline[5] :
+                     (cur_count == 6'b000110) ? delay_pipeline[6] :
+                     (cur_count == 6'b000111) ? delay_pipeline[7] :
+                     (cur_count == 6'b001000) ? delay_pipeline[8] :
+                     (cur_count == 6'b001001) ? delay_pipeline[9] :
+                     (cur_count == 6'b001010) ? delay_pipeline[10] :
+                     (cur_count == 6'b001011) ? delay_pipeline[11] :
+                     (cur_count == 6'b001100) ? delay_pipeline[12] :
+                     (cur_count == 6'b001101) ? delay_pipeline[13] :
+                     (cur_count == 6'b001110) ? delay_pipeline[14] :
+                     (cur_count == 6'b001111) ? delay_pipeline[15] :
+                     (cur_count == 6'b010000) ? delay_pipeline[16] :
+                     (cur_count == 6'b010001) ? delay_pipeline[17] :
+                     (cur_count == 6'b010010) ? delay_pipeline[18] :
+                     (cur_count == 6'b010011) ? delay_pipeline[19] :
+                     (cur_count == 6'b010100) ? delay_pipeline[20] :
+                     (cur_count == 6'b010101) ? delay_pipeline[21] :
+                     (cur_count == 6'b010110) ? delay_pipeline[22] :
+                     (cur_count == 6'b010111) ? delay_pipeline[23] :
+                     (cur_count == 6'b011000) ? delay_pipeline[24] :
+                     (cur_count == 6'b011001) ? delay_pipeline[25] :
+                     (cur_count == 6'b011010) ? delay_pipeline[26] :
+                     (cur_count == 6'b011011) ? delay_pipeline[27] :
+                     (cur_count == 6'b011100) ? delay_pipeline[28] :
+                     (cur_count == 6'b011101) ? delay_pipeline[29] :
+                     (cur_count == 6'b011110) ? delay_pipeline[30] :
+                     (cur_count == 6'b011111) ? delay_pipeline[31] :
+                     (cur_count == 6'b100000) ? delay_pipeline[32] :
+                     (cur_count == 6'b100001) ? delay_pipeline[33] :
+                     (cur_count == 6'b100010) ? delay_pipeline[34] :
+                     (cur_count == 6'b100011) ? delay_pipeline[35] :
+                     (cur_count == 6'b100100) ? delay_pipeline[36] :
+                     (cur_count == 6'b100101) ? delay_pipeline[37] :
+                     (cur_count == 6'b100110) ? delay_pipeline[38] :
+                     (cur_count == 6'b100111) ? delay_pipeline[39] :
+                     (cur_count == 6'b101000) ? delay_pipeline[40] :
+                     (cur_count == 6'b101001) ? delay_pipeline[41] :
+                     (cur_count == 6'b101010) ? delay_pipeline[42] :
+                     (cur_count == 6'b101011) ? delay_pipeline[43] :
+                     (cur_count == 6'b101100) ? delay_pipeline[44] :
+                     (cur_count == 6'b101101) ? delay_pipeline[45] :
+                     (cur_count == 6'b101110) ? delay_pipeline[46] :
+                     (cur_count == 6'b101111) ? delay_pipeline[47] :
+                     (cur_count == 6'b110000) ? delay_pipeline[48] :
+                     (cur_count == 6'b110001) ? delay_pipeline[49] :
+                     delay_pipeline[50];
+
+  //   ------------------ Serial partition # 1 ------------------
+
+  always @* product_1_mux <= (cur_count == 6'b000000) ? coeff1 :
+                        (cur_count == 6'b000001) ? coeff2 :
+                        (cur_count == 6'b000010) ? coeff3 :
+                        (cur_count == 6'b000011) ? coeff4 :
+                        (cur_count == 6'b000100) ? coeff5 :
+                        (cur_count == 6'b000101) ? coeff6 :
+                        (cur_count == 6'b000110) ? coeff7 :
+                        (cur_count == 6'b000111) ? coeff8 :
+                        (cur_count == 6'b001000) ? coeff9 :
+                        (cur_count == 6'b001001) ? coeff10 :
+                        (cur_count == 6'b001010) ? coeff11 :
+                        (cur_count == 6'b001011) ? coeff12 :
+                        (cur_count == 6'b001100) ? coeff13 :
+                        (cur_count == 6'b001101) ? coeff14 :
+                        (cur_count == 6'b001110) ? coeff15 :
+                        (cur_count == 6'b001111) ? coeff16 :
+                        (cur_count == 6'b010000) ? coeff17 :
+                        (cur_count == 6'b010001) ? coeff18 :
+                        (cur_count == 6'b010010) ? coeff19 :
+                        (cur_count == 6'b010011) ? coeff20 :
+                        (cur_count == 6'b010100) ? coeff21 :
+                        (cur_count == 6'b010101) ? coeff22 :
+                        (cur_count == 6'b010110) ? coeff23 :
+                        (cur_count == 6'b010111) ? coeff24 :
+                        (cur_count == 6'b011000) ? coeff25 :
+                        (cur_count == 6'b011001) ? coeff26 :
+                        (cur_count == 6'b011010) ? coeff27 :
+                        (cur_count == 6'b011011) ? coeff28 :
+                        (cur_count == 6'b011100) ? coeff29 :
+                        (cur_count == 6'b011101) ? coeff30 :
+                        (cur_count == 6'b011110) ? coeff31 :
+                        (cur_count == 6'b011111) ? coeff32 :
+                        (cur_count == 6'b100000) ? coeff33 :
+                        (cur_count == 6'b100001) ? coeff34 :
+                        (cur_count == 6'b100010) ? coeff35 :
+                        (cur_count == 6'b100011) ? coeff36 :
+                        (cur_count == 6'b100100) ? coeff37 :
+                        (cur_count == 6'b100101) ? coeff38 :
+                        (cur_count == 6'b100110) ? coeff39 :
+                        (cur_count == 6'b100111) ? coeff40 :
+                        (cur_count == 6'b101000) ? coeff41 :
+                        (cur_count == 6'b101001) ? coeff42 :
+                        (cur_count == 6'b101010) ? coeff43 :
+                        (cur_count == 6'b101011) ? coeff44 :
+                        (cur_count == 6'b101100) ? coeff45 :
+                        (cur_count == 6'b101101) ? coeff46 :
+                        (cur_count == 6'b101110) ? coeff47 :
+                        (cur_count == 6'b101111) ? coeff48 :
+                        (cur_count == 6'b110000) ? coeff49 :
+                        (cur_count == 6'b110001) ? coeff50 :
+                        coeff51;
+  always @* product_1 <= inputmux_1 * product_1_mux;
+
+  always @* prod_typeconvert_1 <= product_1;
+
+
+  always @* acc_sum_1 <= prod_typeconvert_1 + acc_out_1;
+
+  always @* acc_in_1 <= (phase_0 == 1'b1) ? prod_typeconvert_1 :
+                   acc_sum_1;
+
+  always @ (posedge clk or posedge reset)
+    begin: Acc_reg_1_process
+      if (reset == 1'b1) begin
+        acc_out_1 <= 0.0000000000000000E+00;
+      end
+      else begin
+        if (clk_enable == 1'b1) begin
+          acc_out_1 <= acc_in_1;
+        end
+      end
+    end // Acc_reg_1_process
+
+  always @ (posedge clk or posedge reset)
+    begin: Finalsum_reg_process
+      if (reset == 1'b1) begin
+        acc_final <= 0.0000000000000000E+00;
+      end
+      else begin
+        if (phase_0 == 1'b1) begin
+          acc_final <= acc_out_1;
+        end
+      end
+    end // Finalsum_reg_process
+
+  always @* output_typeconvert <= acc_final;
+
+
+  always @ (posedge clk or posedge reset)
+    begin: Output_Register_process
+      if (reset == 1'b1) begin
+        output_register <= 0.0000000000000000E+00;
+        
+       
+      end
+      else begin
+        if (phase_50 == 1'b1) begin
+          output_register <= output_typeconvert; 
+        end
+      end   
+    end // Output_Register_process
+
+  // Assignment Statements
+   
+   assign filter_out = $realtobits(output_register);
+  always @ (filter_out)
+  begin
+  if (reset != 1'b1)
+  begin
+    $fwrite(write_file,"%b\n",filter_out);
+    end
+  end
+  
+endmodule  // filter321
