@@ -1,0 +1,26 @@
+[y,fs] = audioread('conv1.wav');
+x=y;
+leftfilter = designfilt('bandpassfir','FilterOrder',1000, ...
+         'CutoffFrequency1',10,'CutoffFrequency2',1000, ...
+         'SampleRate',48000);
+     z = filter(leftfilter,x);
+     d1=z*2^15;
+c1=typecast(int16(d1), 'uint16');
+[m]=size(c1);
+
+for i=1:m
+        if c1(i,1)>=0
+            z1(i,1)=c1(i,1);
+        else
+            z1(i,1)=c1(i,1)+(2^15);
+    end
+end
+v1=dec2bin(z1);
+
+filnam1 = 'v1.txt';
+
+    fid = fopen(filnam1,'w');
+    for i=1:size(v1,1)    
+        fprintf(fid,'%s\n', v1(i,:));
+    end;          
+    fclose(fid);
