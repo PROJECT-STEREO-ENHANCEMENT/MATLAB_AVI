@@ -1,0 +1,24 @@
+
+clc;
+close all;
+clear all;
+fid= fopen('prtoutnew3.txt');
+tline = fgetl(fid);
+d1=[];
+i=0;
+while i<50000
+    i=i+1;
+    d1=[d1; tline];
+    tline = fgetl(fid);
+end
+f1=bin2dec(d1);
+
+fclose(fid);
+for i=1:50000
+        if f1(i,1)<=16777215;
+            a1(i,1)=f1(i,1);
+        else
+            a1(i,1)=f1(i,1)-(2^25);
+    end
+end
+s1=a1/(2^24);
