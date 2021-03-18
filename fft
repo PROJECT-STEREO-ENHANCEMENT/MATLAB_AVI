@@ -1,0 +1,73 @@
+clc;
+clear all;
+close all;
+
+[y,fs] = audioread('kadal.wav');
+
+x=y;
+figure;
+plot(abs(fftshift(x)));
+title("input");
+rightchannel = x(:, 2);
+leftchannel = x(:, 1);
+figure;
+plot(abs(fftshift(rightchannel)));
+title("rightchannel");
+figure;
+plot(abs(fftshift(leftchannel)));
+title("leftchannel");
+% semicolon=;*ones(size(leftchannel));
+
+l1=min(leftchannel*2^(15));
+d1=(leftchannel*2^(15)-l1);
+
+
+l2=min(rightchannel*2^(15));
+d2=(rightchannel*2^(15)-l2);
+newrchannel=d1-d2;
+newlchannel=d2-d1;
+delay= 0.00000625;
+
+ %%newrchannelout=delayseq(newrchannel,delay,8000);
+ %%newlchannelout=delayseq(newlchannel,delay,8000);
+ 
+ newrchannelout=[zeros(fs/2,1) ; newrchannel];
+ newlchannelout=[zeros(fs/2,1) ; newlchannel];
+ 
+ newrchannelout1=(0.5)*newrchannelout;
+ newlchannelout1=(0.5)*newlchannelout;
+ 
+ 
+leftfilter = designfilt('bandpassfir','FilterOrder',1000, ...
+         'CutoffFrequency1',400,'CutoffFrequency2',8000, ...
+         'SampleRate',45000);
+
+    
+rightfilter = designfilt('bandpassfir','FilterOrder',1000, ...
+         'CutoffFrequency1',4000,'CutoffFrequency2',10000, ...
+         'SampleRate',45000);
+     
+     
+leftfiltered = filter(leftfilter,newlchannelout1);
+rightfiltered = filter(rightfilter,newrchannelout1);
+
+d1=[d1 ; zeros(fs/2,1)];
+d2=[d2 ; zeros(fs/2,1)];
+
+rf=d2+rightfiltered;
+lf=d1+leftfiltered;
+
+rightfinal=(rf+l1)/(2^15);
+leftfinal=(lf+l2)/(2^15);
+stereo=[leftfinal rightfinal];
+figure;
+plot(abs(fftshift(rightfinal)));
+title("rightfinal");
+figure;
+plot(abs(fftshift(leftfinal)));
+title("leftfinal");
+figure;
+plot(abs(fftshift(stereo)));
+title("stereo");
+audiowrite("kadal_reverb.wav",stereo,fs);
+% While playing the audio use sound(stereo,fs)
